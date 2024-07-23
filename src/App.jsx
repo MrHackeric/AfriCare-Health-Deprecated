@@ -15,6 +15,9 @@ import MidwivesPage from './pages/MidwivesPage';
 import Emergencies from './pages/Emergencies';
 import CommunityPage from './pages/CommunityPage';
 import ChatbotPage from './pages/ChatbotPage';
+import SignUpPage from './pages/SignUpPage';
+import SignInPage from './pages/SignInPage';
+import ForgotPasswordPage from './pages/ForgotPassword';
 
 function App() {
 
@@ -29,7 +32,10 @@ function App() {
   return (
     <>
       <Routes>
-        <Route exact path="/" element={<Dashboard />} />
+        <Route exact path="/" element={<SignUpPage />} />
+        <Route exact path="/SignIn" element={<SignInPage />} />
+        <Route exact path="/ForgotPassword" element={<ForgotPasswordPage />} />
+        <Route exact path="/Dashboard" element={<Dashboard />} />
         <Route exact path="/Midwives" element={<MidwivesPage />} />
         <Route exact path="/Emergency" element={<Emergencies />} />
         <Route exact path="/Community" element={<CommunityPage />} />
