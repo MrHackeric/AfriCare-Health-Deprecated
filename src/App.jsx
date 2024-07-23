@@ -40,7 +40,7 @@ function App() {
         <Route exact path="/Emergency" element={<Emergencies />} />
         <Route exact path="/Community" element={<CommunityPage />} />
         <Route exact path="/Chatbot" element={<ChatbotPage />} />
-        </Routes>
+      </Routes>
     </>
   );
 }
