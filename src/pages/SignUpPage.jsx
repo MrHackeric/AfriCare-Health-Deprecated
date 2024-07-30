@@ -4,15 +4,6 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-
-const SignUpSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required')
-});
-
 function SignUpPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState({});
@@ -21,27 +12,34 @@ function SignUpPage() {
     name: '',
     email: '',
     password: ''
-  }
-  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+  };
+
+  const SignUpSchema = Yup.object().shape({
+    name: Yup.string().required('Name is required'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
+    password: Yup.string()
+      .min(6, 'Password must be at least 6 characters')
+      .required('Password is required')
+  });
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
     try {
-      const response = await axios.post('http://localhost:5000/api/users/register', values)
-      setStatus({ success: "Registration Succesfull. Login Please." });
-      console.log(values)
+      const response = await axios.post(
+        "http://localhost:5000/api/users/register", // register endpoint
+        values
+      );
 
-      //redirect to loginPage
-      setTimeout(() => {
-        setStatus({ success: false });
-        navigate("/SignIn");
-      }, 2000);
-
+      setStatus({ success: "Registered successfully!" });
+      navigate("/SignIn");
     } catch (error) {
-      console.error("SignUp error:", error);
-      // Handle login error, show error message, etc
-      setStatus({ error: "Registration Failed. Please try again later." });
+      console.error("Sign Up error:", error);
+      setStatus({ error: "Sign Up failed. Please try again later" });
     } finally {
       setSubmitting(false);
     }
   };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
@@ -56,7 +54,6 @@ function SignUpPage() {
           onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
-
             <Form>
               <div className="mb-4">
                 <label
@@ -115,7 +112,6 @@ function SignUpPage() {
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
-              {/* {set status} */}
               {status.success && (
                 <div className="mb-4 text-green-500 text-sm">
                   Registered successfully!
@@ -132,7 +128,7 @@ function SignUpPage() {
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
                   disabled={isSubmitting}
                 >
-                  Sign Up
+                  {isSubmitting ? 'Signing Up.....' : 'Sign Up'}
                 </button>
                 <a
                   href="/SignIn"
@@ -140,6 +136,27 @@ function SignUpPage() {
                 >
                   Already have an account? Sign In
                 </a>
+              </div>
+              <div className="mt-6 flex items-center justify-center">
+                <div className="w-full border-t border-gray-300"></div>
+                <span className="px-2 text-gray-500">OR</span>
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="mt-4 flex items-center justify-center">
+                <button
+                  type="button"
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center"
+                  onClick={() => {
+                    // Implement sign-up with Google logic here
+                  }}
+                >
+                  <img
+                    src="https://img.icons8.com/color/16/000000/google-logo.png"
+                    alt="Google Logo"
+                    className="mr-2"
+                  />
+                  Sign up with Google
+                </button>
               </div>
             </Form>
           )}

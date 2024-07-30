@@ -18,29 +18,29 @@ function SignInPage() {
   const initialValues = {
     email: '',
     password: ''
-  }
+  };
+
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/users/login/:email', values)
-      console.log(values)
+      const response = await axios.post('http://localhost:5000/api/users/login', values);
+      console.log(values);
       const { token, user } = response.data;
 
       const saveData = (token, user) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
-      }
+      };
       saveData(token, user);
-      setStatus({ sucess: "Logged in successfully!" })
+      setStatus({ success: "Logged in successfully!" });
 
-      //redirect to loginPage
+      // Redirect to dashboard
       setTimeout(() => {
-        setStatus({ success: false });
-        navigate("/Dashboard");
+        setStatus({});
+        navigate(user.email === 'admin@gmail.com' && user.password === 'admin101' ? '/adminDashboard' : '/Dashboard');
       }, 2000);
 
     } catch (error) {
-      console.error("SignUp error:", error);
-      // Handle login error, show error message, etc
+      console.error("SignIn error:", error);
       setStatus({ error: "Login Failed. Please try again later." });
     } finally {
       setSubmitting(false);
@@ -58,7 +58,7 @@ function SignInPage() {
         <Formik
           initialValues={initialValues}
           validationSchema={SignInSchema}
-          onSubmit={(values, actions) => handleSubmit(values, { ...actions, setStatus })}
+          onSubmit={(values, actions) => handleSubmit(values, actions)}
         >
           {({ isSubmitting }) => (
             <Form>
@@ -100,7 +100,6 @@ function SignInPage() {
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
-              {/* {set status} */}
               {status.success && (
                 <div className="mb-4 text-green-500 text-sm">
                   Logged in successfully!
@@ -134,6 +133,27 @@ function SignInPage() {
                 >
                   Don't have an account? Sign Up
                 </a>
+              </div>
+              <div className="mt-6 flex items-center justify-center">
+                <div className="w-full border-t border-gray-300"></div>
+                <span className="px-2 text-gray-500">OR</span>
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="mt-4 flex items-center justify-center">
+                <button
+                  type="button"
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center"
+                  onClick={() => {
+                    // Implement sign-in with Google logic here
+                  }}
+                >
+                  <img
+                    src="https://img.icons8.com/color/16/000000/google-logo.png"
+                    alt="Google Logo"
+                    className="mr-2"
+                  />
+                  Sign in with Google
+                </button>
               </div>
             </Form>
           )}

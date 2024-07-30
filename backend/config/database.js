@@ -1,10 +1,10 @@
 import mysql from "mysql2/promise";
 
 const databaseConfig = {
-  host: "localhost",
-  user: "root",
-  password: "Denis/s13",
-  database: "africare",
+  host: "http://sql12.freesqldatabase.com/",
+  user: "sql12722832",
+  password: "ppAt8mPckR",
+  database: "sql12722832",
 };
 
 let connection;

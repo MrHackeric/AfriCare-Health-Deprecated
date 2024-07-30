@@ -13,13 +13,13 @@ const router = express.Router();
 router.post("/users/register", registerUser);
 
 // Login User
-router.post("/users/login/:email", loginUser);
+router.post("/login/:email", loginUser);
 
 // Fetch User Profile
-router.get("users/profile/:id", getUserProfile);
+router.get("/profile/:id", getUserProfile);
 
 // Update User Profile
-router.put("users/update/:id", authenticateUser, updateUserProfile);
+router.put("/update/:id", authenticateUser, updateUserProfile);
 
 // Get All Users (Admin only)
 router.get("/users/", getAllUsers);
