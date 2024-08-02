@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { FaPaperPlane } from 'react-icons/fa';
 
-const socket = io('http://localhost:3000'); // Adjust the server URL as needed
+// const socket = io('http://localhost:3000'); // Adjust the server URL as needed
 
 function Community() {
   const [message, setMessage] = useState('');

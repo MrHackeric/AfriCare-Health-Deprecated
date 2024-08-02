@@ -1,19 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Transition from '../utils/Transition';
-
+import axios from 'axios';
+import { auth } from '../../auth/firebase-config.js';
+import { signOut } from 'firebase/auth';
 import UserAvatar from '../images/user-avatar-32.png';
 
-function DropdownProfile({
-  align
-}) {
-
+function DropdownProfile({ align }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const [user, setUser] = useState(null);
   const trigger = useRef(null);
   const dropdown = useRef(null);
+  const navigate = useNavigate(); // Added navigate
 
-  // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }) => {
       if (!dropdown.current) return;
@@ -24,7 +23,6 @@ function DropdownProfile({
     return () => document.removeEventListener('click', clickHandler);
   });
 
-  // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }) => {
       if (!dropdownOpen || keyCode !== 27) return;
@@ -33,6 +31,33 @@ function DropdownProfile({
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
   });
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  const handleLogout = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const token = await user.getIdToken();
+        await axios.post("http://192.168.1.123:5000/api/users/logout", { token });
+        await signOut(auth);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate("/SignIn");
+      }
+    } catch (error) {
+      console.error("Sign-out error:", error);
+    }
+  };
 
   return (
     <div className="relative inline-flex">
@@ -45,7 +70,7 @@ function DropdownProfile({
       >
         <img className="w-8 h-8 rounded-full" src={UserAvatar} width="32" height="32" alt="User" />
         <div className="flex items-center truncate">
-          <span className="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">Acme Inc.</span>
+          <span className="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">{user.name}</span>
           <svg className="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
           </svg>
@@ -68,8 +93,8 @@ function DropdownProfile({
           onBlur={() => setDropdownOpen(false)}
         >
           <div className="pt-0.5 pb-2 px-3 mb-1 border-b border-gray-200 dark:border-gray-700/60">
-            <div className="font-medium text-gray-800 dark:text-gray-100">Acme Inc.</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 italic">Administrator</div>
+            <div className="font-medium text-gray-800 dark:text-gray-100">{user.name}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 italic">{user.email}</div>
           </div>
           <ul>
             <li>
@@ -82,19 +107,21 @@ function DropdownProfile({
               </Link>
             </li>
             <li>
-              <Link
+              <button
                 className="font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
-                to="/signin"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+                onClick={() => {
+                  setDropdownOpen(!dropdownOpen);
+                  handleLogout(); // Corrected: Call the function here
+                }}
               >
                 Sign Out
-              </Link>
+              </button>
             </li>
           </ul>
         </div>
       </Transition>
     </div>
-  )
+  );
 }
 
 export default DropdownProfile;

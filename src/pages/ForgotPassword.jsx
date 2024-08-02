@@ -3,6 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../auth/firebase-config.js';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required')
@@ -20,17 +22,17 @@ function ForgotPasswordPage() {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      await axios.post("http://localhost/api/users/forgot-password", values);
-      setStatus({ success: "Password reset link sent! Please check your email." });
+      await sendPasswordResetEmail(auth, values.email);
+      setStatus({ success: "Password reset email sent! Please check your inbox." });
       setEmail(values.email);
-      setStep('verifyCode');
+      setStep('verifyCode'); // Update this based on your flow
     } catch (error) {
       console.error("Password reset error:", error);
-      setStatus({ error: "Failed to send password reset link. Please try again later." });
+      setStatus({ error: "Failed to send password reset email. Please try again later." });
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   const handleReset = async (values, { setSubmitting, setStatus }) => {
     try {
@@ -49,7 +51,7 @@ function ForgotPasswordPage() {
     } finally {
       setSubmitting(false);
     }
-  }
+  };
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">

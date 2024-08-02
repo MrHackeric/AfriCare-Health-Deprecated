@@ -7,16 +7,13 @@ import {
   registerUser,
   getAllUsers,
   logoutUser,
-  googleSignIn,
 } from "../controllers/UserController.js";
 const router = express.Router();
 // Register User
 router.post("/users/register", registerUser);
 
 // Login User
-router.post("/login/email", loginUser);
-//google sign in
-router.post("/b vusers/google-sign", googleSignIn)
+router.post("/users/login/:email", loginUser);
 
 // Fetch User Profile
 router.get("/profile/:id", getUserProfile);
@@ -28,7 +25,7 @@ router.put("/update/:id", authenticateUser, updateUserProfile);
 router.get("/users/", getAllUsers);
 
 // Logout route
-router.post("/logout", logoutUser);
+router.post("/users/logout", logoutUser);
 
 const app = express();
 app.use((err, req, res, next) => {

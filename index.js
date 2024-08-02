@@ -1,9 +1,8 @@
 import express from "express";
-import { connectToDatabase } from "./src/backend/config/database.js";
-import UserRoutes from "./src/backend/routes/UserRoutes.js";
-import bodyParser from "body-parser";
+import routes from "./routes/users.js";
 import cors from "cors";
 import morgan from "morgan";
+import bodyParser from "body-parser";
 
 const app = express();
 
@@ -12,27 +11,12 @@ const port = 5000;
 //middleware
 app.use(cors());
 app.use(bodyParser.json()); // Parse JSON bodies
-app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(morgan("dev"));
 
 // routes
-app.use("/api", UserRoutes);
+app.use("/api", routes);
 
-await connectToDatabase();
-// const startServer = async () => {
-//   try {
-//     await connectToDatabase();
-//     // Start your server or other initializations
-//     app.listen(port, () => {
-//       console.log("Server is running on port 5000");
-//     });
-//   } catch (err) {
-//     console.error("Error starting the server:", err);
-//   }
-// };
-
-app.listen(port, () => {
-  console.log("Server is running on port 5000");
-});
-
-// startServer();
+ app.listen(port, ()=>{
+   console.log(`Server is running on port ${port}`)
+ });

@@ -1,25 +1,21 @@
-import jwt from "jsonwebtoken";
-import User from "../models/UserModel.js";
+import { auth } from "../firebase-admin.js"; // Import Firebase auth
 
-const authenticateUser = async (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split("Bearer ")[1]; // Extract token from Authorization header
+
+  if (!token) {
+    return res.status(401).json({ msg: "No token, authorization denied" });
+  }
+
   try {
-    const token = req.header("Authorization").replace("Bearer ", "");
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.user.id);
-
-    if (user.length === 0) {
-      throw new Error();
-    }
-
-    req.token = token;
-    req.user = user[0];
+    // Verify Firebase token
+    const decodedToken = await auth.verifyIdToken(token);
+    req.user = decodedToken; // Attach user info to request
     next();
   } catch (error) {
-    res
-      .status(401)
-      .send({ error: "Authentication failed. Please authenticate." });
+    console.error("Token verification error:", error);
+    res.status(401).json({ msg: "Token is not valid" });
   }
 };
 
-export default authenticateUser;
+export default verifyToken;

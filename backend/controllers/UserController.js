@@ -1,34 +1,32 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import User from "../models/UserModel.js";
+import { auth as adminAuth } from "../firebase-admin.js";
+import admin from 'firebase-admin'
+
 
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
-
+  const { firebaseUid, email, name } = req.body;
+  console.log("Received registration request:", req.body);
+ 
   try {
-    // Check if user already exists
-    const userExists = await User.findByEmail(email);
-    if (userExists.length > 0) {
-      return res.status(400).json({ msg: "User already exists" });
+    //verify firebasetoken
+    const userRecord = await adminAuth.getUser(firebaseUid)
+    if(!userRecord){
+      return res.status(400).json({ message: "Invalid Firebase UID" })
     }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
+   
+    // Store the user's Firebase UID and other details in your MySQL database
     const newUser = await User.create({
+      firebaseUid,
       name,
       email,
-      password: hashedPassword,
+      createdAt: new Date()
     });
-
-    res.json({ user: newUser });
+    res.json({ user: newUser, msg: "User Registered succesfully" });
   } catch (err) {
-    console.error(err.message);
+    console.error("Error registering user:", err.message || err);
     res.status(500).send("Server Error");
   }
 };
@@ -37,65 +35,91 @@ export const registerUser = async (req, res) => {
 // @route   POST /api/users/login
 // @access  Public
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { token } = req.body;
 
   try {
-    // Check if user exists
-    const user = await User.findByEmail(email);
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    // Verify Firebase UID
+    const userRecord = await adminAuth.getUser(uid);
+    if (!userRecord) {
+      return res.status(400).json({ message: "Invalid Firebase UID" });
+    }
+
+    // Fetch user from database
+    const user = await User.findByFirebaseUID(uid);
     if (user.length === 0) {
-      return res.status(400).json({ msg: "Invalid Credentials" });
+      // User not found in database
+      res.status(404).json({ msg: "User not found" });
+      return;
     }
 
-    // Validate password
-    const isMatch = await bcrypt.compare(password, user[0].password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid Credentials" });
-    }
+    const username = user[0].name;
 
-    // Create and return JWT token
-    const payload = {
+    res.json({
       user: {
-        id: user[0].id,
-        name: user[0].name,
-        email: user[0].email,
+        uid,
+        email: decodedToken.email,
+        name: username,
       },
-    };
-
-    jwt.sign(
-      payload,
-      'africare-jwt',
-    //   process.env.JWT_SECRET,
-      { expiresIn: "1h" },
-      (err, token) => {
-        if (err) throw err;
-        res.json({
-          token,
-          user: {
-            id: user[0].id,
-            username: user[0].name,
-            email: user[0].email,
-          },
-        });
-      }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    });
+  } catch (error) {
+    console.error("Token verification Error:", error);
+    res.status(401).json({ msg: "Unauthorized" });
   }
 };
 
-// @desc    Authenticate user & get token
+// @desc Sign In/Up with google
+//route POST /api/users/google
+// @access Public
+export const googleSignIn = async (req, res) => {
+  const { token } = req.body;
+  try{
+    //verify token
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    const {uid, email, name, picture} = decodedToken;
+
+    //check if user exists in database
+    let user = await User.findByFirebaseUID(uid);
+    if(!user){
+      //create new user
+      const newUser = await User.create({name,
+         email,
+          profilePicture: picture, 
+          firebaseUID: uid,
+        createdAt: new Date()
+      });
+    } else{
+      //if exists update user info
+      const updatedInfo= {email, name, profilePicture:picture};
+      await User.updateByFirebaseUID(uid, updatedInfo);
+    }
+    res.json({msg: "Authenticated succesfully", newUser})
+  } catch (err){
+    console.error(err);
+    res.status(500).json({msg: "Failoed to authenticate with google"});
+  }
+}
+
+// @desc    Logout user
 // @route   POST /api/users/logout
 // @access  Public
 export const logoutUser = async (req, res) => {
   try {
-    req.user.token = req.user.token.filter(
-      (tokenObj) => tokenObj.token !== req.token
-    );
-    await req.user.save();
-    res.send({ message: "Logged out successfully" });
+    // Firebase token is provided by the client
+    const { token } = req.body;
+
+    const decodedToken = await adminAuth.verifyIdToken(token)
+    const uid = decodedToken.uid;
+
+    // Verify token and revoke it 
+    await adminAuth.revokeRefreshTokens(uid); // Pass the uid instead of the token
+
+    res.json({ msg: "Logged out successfully" });
   } catch (error) {
-    res.status(500).send({ error: "Failed to logout" });
+    console.error("Logout error:", error);
+    res.status(500).json({ msg: "Failed to logout" });
   }
 };
 
@@ -152,11 +176,4 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export default {
-  updateUserProfile,
-  getUserProfile,
-  loginUser,
-  registerUser,
-  getAllUsers,
-  logoutUser,
-};
+export default { registerUser, loginUser, googleSignIn };

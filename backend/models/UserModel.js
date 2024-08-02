@@ -1,77 +1,86 @@
-import { connectToDatabase, connection } from "../config/database.js";
+import pool from "../config/database.js";
 
 const User = {
   create: (data) => {
-    const query = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
-    return new Promise((resolve, reject) => {
-      connectToDatabase.query(
-        query,
-        [data.name, data.email, data.password],
-        (err, results) => {
-          if (err) reject(err);
-          else resolve(results);
-        }
-      );
+    const query = `INSERT INTO users (firebase_uid, name, email) VALUES (?, ?, ?)`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query, [data.firebase_uid, data.name, data.email]);
+        resolve(results);
+      } catch (err) {
+        reject(err);
+      }
     });
   },
-  findByEmail: (email) => {
-    const query = `SELECT * FROM users WHERE email = ?`;
-    return new Promise((resolve, reject) => {
-      connection.query(query, [email], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
+
+  findByFirebaseUID: (firebaseUID) => {
+    const query = `SELECT * FROM users WHERE firebase_uid = ?`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query, [firebaseUID]);
+        resolve(results);
+      } catch (err) {
+        reject(err);
+      }
     });
   },
+  updateByFirebaseUID(uid, updatedInfo){
+    const query = 'UPDATE users SET ? WHERE firebase_uid = ?';
+   return new Promise (async (resolve, reject)=>{
+    try{
+      const [results]= await pool.query(query, [updatedInfo, uid]);
+      resolve(results)
+    } catch(err){
+      reject (err)
+    }
+   })
+  },
+
   findById: (id) => {
-    const query = `SELECT * FROM Users WHERE id = ?`;
-    return new Promise((resolve, reject) => {
-      connectToDatabase.query(query, [id], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
+    const query = `SELECT * FROM users WHERE id = ?`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query, [id]);
+        resolve(results);
+      } catch (err) {
+        reject(err);
+      }
     });
   },
-  updatePassword: (email, data) => {
-    const query = `UPDATE users SET password =? WHERE email =?`;
-    return new Promise((resolve, reject) => {
-      connection.query(query, [data.password, email], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-  },
+
   update: (id, data) => {
-    const query = `UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?`;
-    return new Promise((resolve, reject) => {
-      connection.query(
-        query,
-        [data.username, data.password, data.email, data.role, id],
-        (err, results) => {
-          if (err) reject(err);
-          else resolve(results);
-        }
-      );
+    const query = `UPDATE users SET name = ?, email = ? WHERE id = ?`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query, [data.name, data.email, id]);
+        resolve(results);
+      } catch (err) {
+        reject(err);
+      }
     });
   },
+
   delete: (id) => {
     const query = `DELETE FROM users WHERE id = ?`;
-    return new Promise((resolve, reject) => {
-      connection.query(query, [id], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query, [id]);
+        resolve(results);
+      } catch (err) {
+        reject(err);
+      }
     });
   },
+
   findAll: () => {
-    return new Promise((resolve, reject) => {
-      const query = `SELECT * FROM Users`;
-      connection.query(query, (error, results) => {
-        if (error) {
-          return reject(error);
-        }
+    const query = `SELECT * FROM users`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [results] = await pool.query(query);
         resolve(results);
-      });
+      } catch (error) {
+        reject(error);
+      }
     });
   },
 };
