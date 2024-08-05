@@ -12,7 +12,7 @@ import './charts/ChartjsConfig';
 // Import pages
 import Dashboard from './pages/Dashboard';
 import MidwivesPage from './pages/MidwivesPage';
-import Emergencies from './pages/Emergencies';
+import MapsPage from './pages/MapsPage';
 import CommunityPage from './pages/CommunityPage';
 import ChatbotPage from './pages/ChatbotPage';
 import SignUpPage from './pages/SignUpPage';
@@ -37,7 +37,7 @@ function App() {
         <Route exact path="/ForgotPassword" element={<ForgotPasswordPage />} />
         <Route exact path="/Dashboard" element={<Dashboard />} />
         <Route exact path="/Midwives" element={<MidwivesPage />} />
-        <Route exact path="/Emergency" element={<Emergencies />} />
+        <Route exact path="/MapsPage" element={<MapsPage />} />
         <Route exact path="/Community" element={<CommunityPage />} />
         <Route exact path="/Chatbot" element={<ChatbotPage />} />
       </Routes>
