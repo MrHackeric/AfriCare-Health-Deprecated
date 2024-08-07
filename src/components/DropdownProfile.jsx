@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Transition from '../utils/Transition';
-import axios from 'axios';
 import { auth } from '../../auth/firebase-config.js';
 import { signOut } from 'firebase/auth';
 import UserAvatar from '../images/user-avatar-32.png';
@@ -11,7 +10,7 @@ function DropdownProfile({ align }) {
   const [user, setUser] = useState(null);
   const trigger = useRef(null);
   const dropdown = useRef(null);
-  const navigate = useNavigate(); // Added navigate
+  const navigate = useNavigate(); // Initialize navigate
 
   useEffect(() => {
     const clickHandler = ({ target }) => {
@@ -21,7 +20,7 @@ function DropdownProfile({ align }) {
     };
     document.addEventListener('click', clickHandler);
     return () => document.removeEventListener('click', clickHandler);
-  });
+  }, [dropdownOpen]);
 
   useEffect(() => {
     const keyHandler = ({ keyCode }) => {
@@ -30,7 +29,7 @@ function DropdownProfile({ align }) {
     };
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
-  });
+  }, [dropdownOpen]);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -47,15 +46,20 @@ function DropdownProfile({ align }) {
     try {
       const user = auth.currentUser;
       if (user) {
-        const token = await user.getIdToken();
-        await axios.post("http://192.168.1.123:5000/api/users/logout", { token });
+        // Sign out from Firebase
         await signOut(auth);
+
+        // Clear localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+
+        // Redirect to SignIn page
         navigate("/SignIn");
+      } else {
+        console.log("No user currently signed in.");
       }
     } catch (error) {
-      console.error("Sign-out error:", error);
+      console.error("Sign-out error:", error.message || error);
     }
   };
 

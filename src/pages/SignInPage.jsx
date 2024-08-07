@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from '../../auth/firebase-config.js';
+import { handleGoogleSignIn, handleSubmit } from './auth/login';
 
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -14,63 +12,12 @@ const SignInSchema = Yup.object().shape({
 });
 
 function SignInPage() {
-  const [status, setStatus] = useState({});
   const navigate = useNavigate();
+  const [status, setStatus] = useState({});
 
   const initialValues = {
     email: '',
     password: ''
-  };
-
-  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
-    try {
-      // Sign in with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      const token = await userCredential.user.getIdToken();
-
-      // Send token to the backend to verify and log in the user
-      const response = await axios.post("http://192.168.1.123:5000/api/users/login/email", { token });
-
-      console.log("Response from server:", response);
-
-      // Store token and user data as needed
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      setStatus({ success: "Logged in successfully!" });
-      navigate("/Dashboard");
-    } catch (error) {
-      console.error("Login error:", error.response ? error.response.data : error.message);
-      setStatus({ error: "Login failed. Please try again later." });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      // Sign in with Google
-      const result = await signInWithPopup(auth, provider);
-      const firebaseUser = result.user;
-      // Get ID token from the user
-      const token = await firebaseUser.getIdToken();
-
-      // Send response to backend
-      const response = await axios.post('http://192.168.1.123:5000/api/users/google-sign', { token });
-
-      // Store token and user information in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(firebaseUser));
-
-      setStatus({ success: "Logged in successfully!" });
-
-      // Redirect to dashboard or another page
-      navigate("/Dashboard");
-    } catch (error) {
-      console.error("Google Sign-In error:", error);
-      setStatus({ error: "Sign In with Google failed. Please try again later." });
-    }
   };
 
   return (
@@ -84,7 +31,7 @@ function SignInPage() {
         <Formik
           initialValues={initialValues}
           validationSchema={SignInSchema}
-          onSubmit={(values, actions) => handleSubmit(values, actions)}
+          onSubmit={(values, actions) => handleSubmit(values, actions, navigate, setStatus)}
         >
           {({ isSubmitting }) => (
             <Form>
@@ -128,14 +75,13 @@ function SignInPage() {
               </div>
               {status && status.success && <div className="mb-4 text-green-500 text-sm">{status.success}</div>}
               {status && status.error && <div className="mb-4 text-red-500 text-sm">{status.error}</div>}
-
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Signing In..." : "Sign In"}
+                  {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </button>
                 <a
                   href="/ForgotPassword"
@@ -161,7 +107,7 @@ function SignInPage() {
                 <button
                   type="button"
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center"
-                  onClick={handleGoogleSignIn}
+                  onClick={() => handleGoogleSignIn(navigate, setStatus)}
                 >
                   <img
                     src="https://img.icons8.com/color/16/000000/google-logo.png"
@@ -170,8 +116,6 @@ function SignInPage() {
                   />
                   Sign in with Google
                 </button>
-                {status.success && <p>{status.success}</p>}
-                {status.error && <p>{status.error}</p>}
               </div>
             </Form>
           )}

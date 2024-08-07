@@ -1,5 +1,5 @@
 import express from "express";
-import routes from "./routes/users.js";
+import routes from "./backend/routes/users.js";
 import cors from "cors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
