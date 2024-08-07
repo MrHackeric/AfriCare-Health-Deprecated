@@ -62,7 +62,7 @@ export const handleGoogleSignIn = async (navigate, setStatus) => {
     localStorage.setItem('user', JSON.stringify({
       uid: firebaseUser.uid,
       email: firebaseUser.email,
-      displayName: firebaseUser.displayName,
+      name: firebaseUser.displayName,
       // Add other user info as needed
     }));
 

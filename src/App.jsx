@@ -4,9 +4,10 @@ import {
   Route,
   useLocation
 } from 'react-router-dom';
+import { AuthProvider } from '../AuthContext'; // Adjust the import based on your setup
+import ProtectedRoute from '../ProtectedRoute'; // Adjust the import based on your setup
 
 import './css/style.css';
-
 import './charts/ChartjsConfig';
 
 // Import pages
@@ -20,28 +21,47 @@ import SignInPage from './pages/SignInPage';
 import ForgotPasswordPage from './pages/ForgotPassword';
 
 function App() {
-
   const location = useLocation();
 
   useEffect(() => {
     document.querySelector('html').style.scrollBehavior = 'auto'
     window.scroll({ top: 0 })
     document.querySelector('html').style.scrollBehavior = ''
-  }, [location.pathname]); // triggered on route change
+  }, [location.pathname]);
 
   return (
-    <>
+    <AuthProvider>
       <Routes>
-        <Route exact path="/" element={<SignUpPage />} />
-        <Route exact path="/SignIn" element={<SignInPage />} />
-        <Route exact path="/ForgotPassword" element={<ForgotPasswordPage />} />
-        <Route exact path="/Dashboard" element={<Dashboard />} />
-        <Route exact path="/Midwives" element={<MidwivesPage />} />
-        <Route exact path="/MapsPage" element={<MapsPage />} />
-        <Route exact path="/Community" element={<CommunityPage />} />
-        <Route exact path="/Chatbot" element={<ChatbotPage />} />
+        <Route path="/" element={<SignUpPage />} />
+        <Route path="/SignIn" element={<SignInPage />} />
+        <Route path="/ForgotPassword" element={<ForgotPasswordPage />} />
+        <Route path="/Dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/Midwives" element={
+          <ProtectedRoute>
+            <MidwivesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/MapsPage" element={
+          <ProtectedRoute>
+            <MapsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/Community" element={
+          <ProtectedRoute>
+            <CommunityPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/Chatbot" element={
+          <ProtectedRoute>
+            <ChatbotPage />
+          </ProtectedRoute>
+        } />
       </Routes>
-    </>
+    </AuthProvider>
   );
 }
 

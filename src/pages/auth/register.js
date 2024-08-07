@@ -1,8 +1,17 @@
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from '../../../auth/firebase-config.js';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  getAuth,
+  sendEmailVerification,
+} from "firebase/auth";
+import { auth } from "../../../auth/firebase-config.js";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
-export const handleSubmit = async (values, { setSubmitting, setStatus }, navigate) => {
+export const handleSubmit = async (
+  values,
+  { setSubmitting, setStatus },
+  navigate
+) => {
   try {
     // Create user with Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
@@ -33,6 +42,7 @@ export const handleSubmit = async (values, { setSubmitting, setStatus }, navigat
 };
 
 export const handleGoogleSignIn = async (navigate, setStatus) => {
+  const auth = getAuth(); // Initialize Firebase Auth
   const provider = new GoogleAuthProvider();
 
   try {
@@ -52,11 +62,20 @@ export const handleGoogleSignIn = async (navigate, setStatus) => {
       await setDoc(userDocRef, {
         name: firebaseUser.displayName,
         email: firebaseUser.email,
+        emailVerified: firebaseUser.emailVerified, // Store email verification status
         // Add other fields as necessary
       });
-    }
 
-    setStatus({ success: userDoc.exists() ? "Logged in successfully!" : "Account created and logged in successfully!" });
+      // Send email verification if email is not verified
+      if (!firebaseUser.emailVerified) {
+        await sendEmailVerification(firebaseUser);
+        setStatus({ success: "Account created! Please verify your email." });
+      } else {
+        setStatus({ success: "Logged in successfully!" });
+      }
+    } else {
+      setStatus({ success: "Logged in successfully!" });
+    }
 
     // Redirect to dashboard or another page
     navigate("/Dashboard");
