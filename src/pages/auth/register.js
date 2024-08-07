@@ -3,7 +3,9 @@ import {
   signInWithPopup,
   getAuth,
   sendEmailVerification,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
+
 import { auth } from "../../../auth/firebase-config.js";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
